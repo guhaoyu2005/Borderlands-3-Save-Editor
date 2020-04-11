@@ -88,7 +88,11 @@ def editor(save_obj):
     TYPE_DICT = 3
     TYPE_BOOL = 4
     TYPE_MS = 5 #MS_Complete or MS_Active
+    
+    OP_READ = 0
+    OP_WRITE = 1
 
+#only works for write since primitives will be copied
     vMap = {
         'save_game_id': {
             'func': save_obj.save_game_id,
@@ -140,54 +144,56 @@ def editor(save_obj):
             return
         print("Error: " + str(vType) + " is not a valid value.")
 
-    def show_cash():
-        for i in vMap['inventory_category_list']['func']:
-            if i.base_category_definition_hash == 618814354:
-                print("Current cash: " + str(i.quantity))
+    def cash(op, cType, val): #op 0 read 1 write cType 0 cash 1 eridium
+        hashVal = 0
+        if cType == 0:
+            hashVal = 618814354
+        elif cType == 1:
+            hashVal = 3679636065
+
+        for i in save_obj.inventory_category_list:
+            if i.base_category_definition_hash == hashVal:
+                if cType == 0:
+                    print("Current cash: " + str(i.quantity))
+                elif cType == 1:
+                    print("Current eridium: " + str(i.quantity))
+                if op == OP_WRITE:
+                    i.quantity = int(val)
+                    print("Success.\n")
                 return
         print("Error: Cash category hash is not existing.")
 
-    def update(vType, val):
-        if vType in vMap:
-            # add validation later
-            tval = val
-            if vMap[vType]['type'] == TYPE_INT:
-                tval = int(val)
-            elif vMap[vType]['type'] == TYPE_FLOAT:
-                tval = float(val)
-
-            vMap[vType]['func'] = tval
+    def experience_points(op, val):
+        print("Current experience points: " + str(save_obj.experience_points))
+        if op == OP_WRITE:
+            save_obj.experience_points = int(val)
             print("Success.\n")
-            return
-        print("Error: " + str(vType) + " is not a valid value.")
-
-    def update_cash(val):
-        for i in range(0, len(vMap['inventory_category_list']['func'])):
-            if vMap['inventory_category_list']['func'][i].base_category_definition_hash == 618814354:
-                vMap['inventory_category_list']['func'][i].quantity = val
-                print("Success.\n")
-                return
-        print("Error: Cash category hash is not existing.")
 
     def print_menu():
-        print("BdEH: Save Editor for Borderland 3\n")
+        print("BdEH: Save Editor for Borderlands 3\n")
         print("Commands:\nhelp\nget\nset\nsaveexit\nexit\n")
-
 
     def command(input):
         #try:
             ele = input.split()
             cmd = ele[0]
+            stat = ele[1]
             if cmd == 'get':
-                if ele[1] == 'cash':
-                    show_cash()
+                if stat == 'cash':
+                    cash(OP_READ, 0, 0)
+                elif stat == 'eridium':
+                    cash(OP_READ, 1, 0)
+                elif stat == 'experience_points':
+                    experience_points(OP_READ, 0)
                 else:
-                    show(ele[1])
+                    show(stat)
             elif cmd == 'set':
-                if ele[1] == 'cash':
-                    update_cash(int(ele[2]))
-                else:
-                    update(ele[1], ele[2])
+                if stat == 'cash':
+                    cash(OP_WRITE, 0, ele[2])
+                elif stat == 'eridium':
+                    cash(OP_WRITE, 1, ele[2])
+                elif stat == 'experience_points':
+                    experience_points(OP_WRITE, ele[2])
             else:
                 print("Error: Invalid command")
         #except:
