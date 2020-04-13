@@ -92,7 +92,7 @@ def editor(save_obj):
     OP_READ = 0
     OP_WRITE = 1
 
-#only works for write since primitives will be copied
+#only works for read since primitives will be copied
     vMap = {
         'save_game_id': {
             'func': save_obj.save_game_id,
